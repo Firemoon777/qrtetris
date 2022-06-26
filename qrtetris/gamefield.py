@@ -192,7 +192,7 @@ class GameField:
             angle = int(args[0])
             angle = min(max(angle, 1), 4)
         except (ValueError, IndexError):
-            angle = 0
+            angle = 1
 
         for _ in range(angle):
             n, m = len(self.current_figure[0]), len(self.current_figure)

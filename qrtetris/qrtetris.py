@@ -20,7 +20,7 @@ class QRTetris:
 
     markers: Tuple[int, int]
 
-    def __init__(self, content: str, program=None):
+    def __init__(self, content: str, program: str):
         self.content = content
         self.qr = None
         self.program = program
@@ -109,22 +109,22 @@ class QRTetris:
             self,
             interval = 0.5,
             fast_interval = 0.1,
-            output_gif: Optional[str] = None,
-            print_tty = True
+            output: Optional[str] = None,
+            show=True
     ):
         field = GameField(
             self.qr,
             interval=interval,
             fast_interval=fast_interval,
-            gif_enabled=bool(output_gif),
-            tty_enabled=print_tty
+            gif_enabled=bool(output),
+            tty_enabled=show
 
         )
 
         for instruction in self.program:
             field.execute(instruction)
 
-        if output_gif:
+        if output:
             field.save_gif()
 
         field.cleanup()
