@@ -91,13 +91,6 @@ class QRTetris:
 
         self.qr.print_ascii(**kwargs)
 
-    def save(self, stream, format):
-        if self.qr is None:
-            logger.error(f"No QR code generated. Call build() first!")
-            return
-
-        self.qr.make_image().save(stream, format)
-
     def rotate(self, clockwise=True):
         if self.qr is None:
             logger.error(f"No QR code generated. Call build() first!")
@@ -112,8 +105,26 @@ class QRTetris:
                 else:
                     self.qr.modules[i][j] = modules[j][n-i-1]
 
-    def run(self):
-        field = GameField(self.qr)
+    def run(
+            self,
+            interval = 0.5,
+            fast_interval = 0.1,
+            output_gif: Optional[str] = None,
+            print_tty = True
+    ):
+        field = GameField(
+            self.qr,
+            interval=interval,
+            fast_interval=fast_interval,
+            gif_enabled=bool(output_gif),
+            tty_enabled=print_tty
+
+        )
 
         for instruction in self.program:
             field.execute(instruction)
+
+        if output_gif:
+            field.save_gif()
+
+        field.cleanup()

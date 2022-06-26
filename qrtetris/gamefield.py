@@ -1,13 +1,29 @@
+import os
+import tempfile
 import time
 from copy import deepcopy
 from typing import List, Tuple
 
+import imageio
 from qrcode import QRCode
+
+
+def cls():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 class GameField:
     qr: QRCode
     interval: float
+    fast_interval: float
+
+    tty_enabled: bool = False
+
+    gif_enabled: bool = True
+    gif_duration: List[int]
+    gif_frame_number = 0
+    gif_frame_mask = "{prefix}/{step:04}.png"
+    gif_tmp_dir = None
 
     FIGURE_SQUARE = 0
     FIGURE_T = 1
@@ -48,9 +64,22 @@ class GameField:
     current_figure: List[List[bool]]
     current_position: Tuple[int, int]
 
-    def __init__(self, qr, interval=0.5):
+    def __init__(
+            self,
+            qr,
+            interval=0.5,
+            fast_interval=0.1,
+            gif_enabled=True,
+            tty_enabled=True
+    ):
         self.qr = qr
         self.interval = interval
+        self.fast_interval = fast_interval
+        self.gif_enabled = gif_enabled
+        self.gif_duration = list()
+        if self.gif_enabled:
+            self.gif_tmp_dir = tempfile.TemporaryDirectory()
+        self.tty_enabled = tty_enabled
         self.save()
 
     def save(self):
@@ -58,6 +87,10 @@ class GameField:
 
     def load(self):
         self.qr.modules = deepcopy(self.modules)
+
+    def cleanup(self):
+        if self.gif_tmp_dir:
+            self.gif_tmp_dir.cleanup()
 
     def _is_next_move_available(self) -> bool:
         x, y = self.current_position
@@ -74,7 +107,7 @@ class GameField:
 
         return True
 
-    def draw(self):
+    def draw(self, fast=False):
         self.load()
         x, y = self.current_position
         n, m = len(self.current_figure[0]), len(self.current_figure)
@@ -83,12 +116,19 @@ class GameField:
             for j in range(n):
                 self.qr.modules[y+i][x+j] |= self.current_figure[i][j]
 
-    def show(self):
-        self.draw()
-        import os
-        os.system("clear")
-        self.qr.print_ascii()
-        time.sleep(self.interval)
+        if self.tty_enabled:
+            cls()
+            self.qr.print_ascii()
+            time.sleep(self.fast_interval if fast else self.interval)
+
+        if self.gif_enabled:
+            filename = self.gif_frame_mask.format(
+                prefix=self.gif_tmp_dir.name,
+                step=self.gif_frame_number
+            )
+            self.gif_frame_number += 1
+            self.qr.make_image().save(filename)
+            self.gif_duration.append(self.fast_interval if fast else self.interval)
 
     def execute(self, instruction: str):
         tokens = instruction.split(" ")
@@ -97,7 +137,17 @@ class GameField:
         f = getattr(self, f"move_{cmd}")
         f(*args)
 
-        self.show()
+        self.draw(fast=False)
+
+    def save_gif(self):
+        with imageio.get_writer('/tmp/movie.gif', mode='I', duration=self.gif_duration) as writer:
+            filenames = [
+                self.gif_frame_mask.format(prefix=self.gif_tmp_dir.name, step=i)
+                for i in range(self.gif_frame_number)
+            ]
+            for filename in filenames:
+                image = imageio.imread(filename)
+                writer.append_data(image)
 
     def move_spawn(self, *args):
         try:
@@ -135,7 +185,7 @@ class GameField:
     def move_drop(self, *_):
         while self._is_next_move_available():
             self.move_down(1)
-            self.show()
+            self.draw(fast=True)
 
     def move_rotate(self, *args):
         try:

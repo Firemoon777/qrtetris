@@ -96,8 +96,3 @@ for f in range(fig_num):
         y += 1
 
         # time.sleep(0.5)
-
-with imageio.get_writer('/tmp/movie.gif', mode='I', duration=0.3) as writer:
-    for filename in [f"/tmp/{i:04}.png" for i in range(step)]:
-        image = imageio.imread(filename)
-        writer.append_data(image)
