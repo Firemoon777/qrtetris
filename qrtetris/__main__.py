@@ -63,16 +63,18 @@ parser.add_argument(
 )
 
 args = parser.parse_args()
-if args.program:
+if args.program is not None:
     program = list()
     if args.program.startswith("@"):
-        with open(args.programm[1:], "r") as f:
+        with open(args.program[1:], "r") as f:
             arr = f.read().strip().split("\n")
     else:
         arr = args.program.replace(";", "\n").split("\n")
 
     for line in arr:
-        program.append(line.strip())
+        stripped = line.strip()
+        if stripped:
+            program.append(stripped)
 else:
     program = [
         "spawn z",

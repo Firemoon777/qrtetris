@@ -116,9 +116,8 @@ class QRTetris:
             self.qr,
             interval=interval,
             fast_interval=fast_interval,
-            gif_enabled=bool(output),
+            gif_output=output,
             tty_enabled=show
-
         )
 
         for instruction in self.program:
