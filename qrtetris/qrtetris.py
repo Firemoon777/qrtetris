@@ -27,7 +27,6 @@ class QRTetris:
 
     def build(self):
         self.qr = QRCode(
-            version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_H
         )
         self.qr.add_data(self.content, optimize=True)
@@ -42,6 +41,7 @@ class QRTetris:
         f = self.qr.modules_count - 1
         while self.qr.modules[0][f] is True and self.qr.modules[0][f - 1] is True:
             f -= 1
+        f -= 1
 
         self.markers = s, f
 
