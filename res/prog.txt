@@ -1,0 +1,20 @@
+spawn z
+down
+left
+down
+left
+drop
+spawn i
+down
+down
+drop
+spawn z_reversed
+down
+left
+down
+left
+down
+left;rotate
+down
+left
+drop
