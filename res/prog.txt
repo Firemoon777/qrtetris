@@ -14,7 +14,8 @@ left
 down
 left
 down
-left;rotate
+left
+rotate
 down
 left
 drop
